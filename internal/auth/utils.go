@@ -84,3 +84,8 @@ func HashPassword(password []byte) (string, error) {
 
 	return string(passwordHash), nil
 }
+
+func validateHashedPassword(rawPassword string, hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(rawPassword))
+
+}

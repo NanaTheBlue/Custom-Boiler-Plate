@@ -10,5 +10,5 @@ type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
 	Check(ctx context.Context, user *models.User) error
 	Delete(ctx context.Context, user *models.User) error
-	AddRefresh(ctx context.Context, token *models.Tokens, uuid string) error
+	GrabUser(ctx context.Context, req *models.LoginRequest) (*models.User, error)
 }

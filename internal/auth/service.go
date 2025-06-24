@@ -13,29 +13,30 @@ import (
 )
 
 type authService struct {
-	Repo   authrepo.UserRepository
-	secret string
+	UserRepo  authrepo.UserRepository
+	TokenRepo authrepo.TokensRepository
+	secret    string
 }
 
-func NewAuthService(repo authrepo.UserRepository) Service {
-	return &authService{Repo: repo, secret: os.Getenv("JWT_SECRET")}
+func NewAuthService(userrepo authrepo.UserRepository, tokensrepo authrepo.TokensRepository) Service {
+	return &authService{UserRepo: userrepo, TokenRepo: tokensrepo, secret: os.Getenv("JWT_SECRET")}
 }
 
 func (s *authService) RegisterUser(ctx context.Context, req *models.RegisterRequest) (models.Tokens, error) {
-	var id = uuid.New().String()
+
 	passwordHash, err := HashPassword([]byte(req.Password))
 	if err != nil {
 		return models.Tokens{}, err
 	}
 
 	user := models.User{
-		ID:           id,
+		ID:           uuid.New().String(),
 		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: passwordHash,
 	}
 
-	err = s.Repo.Create(ctx, &user)
+	err = s.UserRepo.Create(ctx, &user)
 	if err != nil {
 		return models.Tokens{}, err
 	}
@@ -43,7 +44,7 @@ func (s *authService) RegisterUser(ctx context.Context, req *models.RegisterRequ
 	if err != nil {
 		return models.Tokens{}, err
 	}
-	err = s.Repo.AddRefresh(ctx, &token, jti)
+	err = s.TokenRepo.AddRefresh(ctx, jti, user.ID)
 	if err != nil {
 		return models.Tokens{}, err
 	}
@@ -51,10 +52,31 @@ func (s *authService) RegisterUser(ctx context.Context, req *models.RegisterRequ
 	return token, nil
 }
 
+func (s *authService) LoginUser(ctx context.Context, req *models.LoginRequest) (models.Tokens, error) {
+	user, err := s.UserRepo.GrabUser(ctx, req)
+	if err != nil {
+		return models.Tokens{}, err
+	}
+	err = validateHashedPassword(req.Password, user.PasswordHash)
+	if err != nil {
+		return models.Tokens{}, err
+	}
+	tokens, jti, err := s.generateTokens(user)
+	if err != nil {
+		return models.Tokens{}, err
+	}
+	err = s.TokenRepo.AddRefresh(ctx, jti, user.ID)
+	if err != nil {
+		return models.Tokens{}, err
+	}
+
+	return tokens, nil
+}
+
 func (s *authService) generateTokens(user *models.User) (token models.Tokens, jti string, err error) {
 	jti = uuid.NewString()
 	now := time.Now()
-	access_claims := jwt.MapClaims{
+	auth_claims := jwt.MapClaims{
 		"userName": user.Username,
 		"userId":   user.ID,
 		"exp":      now.Add(10 * time.Minute).Unix(),
@@ -68,7 +90,7 @@ func (s *authService) generateTokens(user *models.User) (token models.Tokens, jt
 		"jti":      jti,
 	}
 
-	authTok := jwt.NewWithClaims(jwt.SigningMethodHS256, access_claims)
+	authTok := jwt.NewWithClaims(jwt.SigningMethodHS256, auth_claims)
 
 	authToken, err := authTok.SignedString([]byte(s.secret))
 	if err != nil {
