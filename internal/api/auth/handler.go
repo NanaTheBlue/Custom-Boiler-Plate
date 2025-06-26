@@ -1,4 +1,4 @@
-package auth
+package authapi
 
 import (
 	"encoding/json"
@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/nanagoboiler/internal/auth"
 	"github.com/nanagoboiler/models"
 )
 
-func Register(s Service) http.HandlerFunc {
+func Register(s auth.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req models.RegisterRequest
 		csrf, err := uuid.NewRandom()
@@ -35,6 +36,9 @@ func Register(s Service) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// i should maybe rewrite this into a helper function
+
 		//Auth Cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "auth_token",
@@ -71,7 +75,7 @@ func Register(s Service) http.HandlerFunc {
 
 }
 
-func Login(s Service) http.HandlerFunc {
+func Login(s auth.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req models.LoginRequest
 		csrf, err := uuid.NewRandom()
