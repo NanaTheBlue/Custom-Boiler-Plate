@@ -37,37 +37,9 @@ func Register(s auth.Service) http.HandlerFunc {
 			return
 		}
 
-		// i should maybe rewrite this into a helper function
-
-		//Auth Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "auth_token",
-			Value:    tokens.Auth_token,
-			Expires:  now.Add(10 * time.Minute),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: true,
-			Secure:   true,
-		},
-		)
-		//Refresh Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "refresh_token",
-			Value:    tokens.Refresh_token,
-			Expires:  now.Add(24 * 30 * time.Hour),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: true,
-			Secure:   true,
-		},
-		)
-		//CSRF Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrf.String(),
-			Expires:  now.Add(10 * time.Minute),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: false,
-			Secure:   true,
-		})
+		setCookie(w, "auth_token", tokens.Auth_token, now.Add(10*time.Minute), http.SameSiteNoneMode, true, true)
+		setCookie(w, "refresh_token", tokens.Refresh_token, now.Add(24*30*time.Hour), http.SameSiteNoneMode, true, true)
+		setCookie(w, "csrf_token", csrf.String(), now.Add(10*time.Minute), http.SameSiteNoneMode, true, false)
 
 		w.WriteHeader(http.StatusCreated)
 
@@ -97,35 +69,9 @@ func Login(s auth.Service) http.HandlerFunc {
 			return
 		}
 
-		//Auth Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "auth_token",
-			Value:    tokens.Auth_token,
-			Expires:  now.Add(10 * time.Minute),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: true,
-			Secure:   true,
-		},
-		)
-		//Refresh Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "refresh_token",
-			Value:    tokens.Refresh_token,
-			Expires:  now.Add(24 * 30 * time.Hour),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: true,
-			Secure:   true,
-		},
-		)
-		//CSRF Cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrf.String(),
-			Expires:  now.Add(10 * time.Minute),
-			SameSite: http.SameSiteNoneMode,
-			HttpOnly: false,
-			Secure:   true,
-		})
+		setCookie(w, "auth_token", tokens.Auth_token, now.Add(10*time.Minute), http.SameSiteNoneMode, true, true)
+		setCookie(w, "refresh_token", tokens.Refresh_token, now.Add(24*30*time.Hour), http.SameSiteNoneMode, true, true)
+		setCookie(w, "csrf_token", csrf.String(), now.Add(10*time.Minute), http.SameSiteNoneMode, true, false)
 
 		w.WriteHeader(http.StatusCreated)
 

@@ -2,7 +2,9 @@ package authapi
 
 import (
 	"errors"
+	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/nanagoboiler/models"
 )
@@ -62,4 +64,17 @@ func validateRegistration(req *models.RegisterRequest) error {
 	}
 
 	return nil
+}
+
+func setCookie(w http.ResponseWriter, name string, value string, expires time.Time, samesite http.SameSite, secure bool, httponly bool) {
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Expires:  expires,
+		SameSite: samesite,
+		HttpOnly: httponly,
+		Secure:   secure,
+	})
+
 }
