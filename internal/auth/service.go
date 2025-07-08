@@ -82,6 +82,7 @@ func (s *authService) generateTokens(user *models.User) (token models.Tokens, jt
 		"exp":      now.Add(10 * time.Minute).Unix(),
 		"iat":      time.Now().Unix(),
 	}
+
 	refresh_claims := jwt.MapClaims{
 		"userName": user.Username,
 		"userId":   user.ID,
