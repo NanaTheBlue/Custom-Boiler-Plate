@@ -2,6 +2,7 @@ package authapi
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -77,4 +78,12 @@ func Login(s auth.Service) http.HandlerFunc {
 
 	}
 
+}
+
+func Bingus() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("we in bingus")
+
+		w.WriteHeader(http.StatusOK)
+	}
 }

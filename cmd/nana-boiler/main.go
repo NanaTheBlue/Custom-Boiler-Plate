@@ -23,9 +23,11 @@ func main() {
 	authService := auth.NewAuthService(authRepo, tokenRepo)
 	authRegister := authapi.Register(authService)
 	authLogin := authapi.Login(authService)
+	bingus := authapi.Bingus()
 
 	router.HandleFunc("POST /register/", authRegister)
 	router.HandleFunc("POST /login/", authLogin)
+	router.HandleFunc("POST /test/", auth.AuthMiddleware(bingus))
 
 	println("Server Listening on Port 8085")
 	http.ListenAndServe(":8085", router)

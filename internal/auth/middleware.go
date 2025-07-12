@@ -5,11 +5,12 @@ import (
 	"net/http"
 )
 
-func AuthMiddleware(s Service) http.HandlerFunc {
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionToken, err := r.Cookie("auth_token")
 		csrfToken, err := r.Cookie("csrf_token")
-		csrfTokenHeader := r.Header.Get("bingus")
+		csrfTokenHeader := r.Header.Get("X-CSRF-TOKEN")
+		type contextKey string
 
 		if err != nil {
 			log.Println(err)
@@ -19,16 +20,20 @@ func AuthMiddleware(s Service) http.HandlerFunc {
 
 		err = validateCSRF(csrfToken.Value, csrfTokenHeader)
 		if err != nil {
+			http.Error(w, "Invalid Token", http.StatusUnauthorized)
 			return
 		}
 
 		user, err := validateJWT(sessionToken.Value)
 		if err != nil {
+			http.Error(w, "Invalid Token", http.StatusUnauthorized)
 			return
 		}
 
+		//const userKey contextKey = string(user.ID)
+
 		log.Println(user.Username)
 
-		//next(w, r)
+		next(w, r)
 	}
 }
