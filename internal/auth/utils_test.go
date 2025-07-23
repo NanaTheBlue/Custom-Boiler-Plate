@@ -8,6 +8,11 @@ import (
 	"github.com/nanagoboiler/models"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/nanagoboiler/internal/bootstrap"
+	authrepo "github.com/nanagoboiler/internal/repository/auth"
+
+	"context"
 )
 
 func TestHashPassword(t *testing.T) {
@@ -34,7 +39,20 @@ func TestHashPassword(t *testing.T) {
 	})
 }
 
+// Integration Test
 func TestValidateJWT(t *testing.T) {
+	ctx := context.Background()
+	pool, err := bootstrap.NewPostgresPool(ctx)
+	if err != nil {
+		panic(err)
+	}
+	authRepo := authrepo.NewUserRepository(pool)
+	tokenRepo := authrepo.NewTokensRepository(pool)
+
+	service := NewAuthService(authRepo, tokenRepo)
+
+	s := service.(*authService)
+
 	type testCase struct {
 		//input params
 		user models.User
